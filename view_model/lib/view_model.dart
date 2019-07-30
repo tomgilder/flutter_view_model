@@ -3,13 +3,12 @@ library view_model;
 import 'package:flutter/widgets.dart';
 
 class ViewModelProvider<TViewModel extends ViewModel> extends StatefulWidget {
-  final TViewModel Function() viewModelBuilder;
+  final TViewModel Function() createViewModel;
   final Widget Function(BuildContext, TViewModel) builder;
 
-  ViewModelProvider({
-    @required this.viewModelBuilder,
-    @required this.builder,
-    Key key}) : super(key: key);
+  ViewModelProvider(
+      {@required this.createViewModel, @required this.builder, Key key})
+      : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _ViewModelState<TViewModel>();
@@ -24,14 +23,15 @@ abstract class ViewModel {
   @protected
   void setState(void Function() fn) => _setState(fn);
 
-  void dispose() { }
+  void dispose() {}
 
   static TViewModel of<TViewModel extends ViewModel>(BuildContext context) {
     assert(context != null);
 
     Type viewModelType<T>() => T;
     final Type type = viewModelType<_ViewModelInheritedWidget<TViewModel>>();
-    final widget = context.inheritFromWidgetOfExactType(type) as _ViewModelInheritedWidget<TViewModel>; 
+    final widget = context.inheritFromWidgetOfExactType(type)
+        as _ViewModelInheritedWidget<TViewModel>;
     assert(widget != null);
     return widget.viewModel;
   }
@@ -41,10 +41,10 @@ class _ViewModelState<T extends ViewModel> extends State<ViewModelProvider<T>> {
   T _viewModel;
 
   @override
-  void initState() { 
+  void initState() {
     super.initState();
-    
-    _viewModel = widget.viewModelBuilder();
+
+    _viewModel = widget.createViewModel();
     assert(_viewModel != null);
 
     _viewModel._setState = setState;
@@ -54,9 +54,7 @@ class _ViewModelState<T extends ViewModel> extends State<ViewModelProvider<T>> {
   @override
   Widget build(BuildContext context) {
     return _ViewModelInheritedWidget<T>(
-      viewModel: _viewModel,
-      child: widget.builder(context, _viewModel)
-    );
+        viewModel: _viewModel, child: widget.builder(context, _viewModel));
   }
 
   @override
@@ -69,10 +67,8 @@ class _ViewModelState<T extends ViewModel> extends State<ViewModelProvider<T>> {
 class _ViewModelInheritedWidget<T extends ViewModel> extends InheritedWidget {
   final T viewModel;
 
-  _ViewModelInheritedWidget({
-    @required Widget child,
-    @required this.viewModel
-  }) : super(child: child);
+  _ViewModelInheritedWidget({@required Widget child, @required this.viewModel})
+      : super(child: child);
 
   @override
   bool updateShouldNotify(InheritedWidget oldWidget) {
